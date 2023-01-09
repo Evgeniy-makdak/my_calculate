@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  redis_host:
+    container_name: "my_host_redis"
+    image: redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+  app:
+    build: ./evaluer
+    tty: true
+    stdin_open: true
+    command: python ./app.py
+    depends_on:
+      redis_host:
+        condition: service_healthy
+
+  worker:
+    build: ./worker
+    command: python ./worker.py
+    depends_on:
+      redis_host:
+        condition: service_healthy
